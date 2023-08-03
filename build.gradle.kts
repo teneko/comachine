@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.9.0"
+    `maven-publish`
 }
 
 group = "de.halfbit"
@@ -34,4 +35,18 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+val sourcesJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+
+publishing {
+    publications {
+        register("mavenJava", MavenPublication::class) {
+            from(components["java"])
+            artifact(sourcesJar.get())
+        }
+    }
 }
