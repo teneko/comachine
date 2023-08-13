@@ -12,14 +12,25 @@ import de.halfbit.comachine.runtime.dispatchers.LatestEventDispatcher
 import de.halfbit.comachine.runtime.dispatchers.SequentialEventDispatcher
 import de.halfbit.comachine.runtime.dispatchers.SingleEventDispatcher
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KClass
+
+internal typealias LaunchInState = (suspend () -> Unit) -> Job
+
+internal interface EventDispatcher<SubEvent : Any> {
+    fun onEventReceived(event: SubEvent)
+    fun onEventCompleted(event: SubEvent) {}
+}
+
+@PublishedApi
+internal class TransitionPerformedException : CancellationException("cancelled on transition")
 
 internal class WhenInRuntime<State : Any, SubState : State, Event : Any>(
     private val stateHolder: StateHolder<State, SubState>,
@@ -73,8 +84,7 @@ internal class WhenInRuntime<State : Any, SubState : State, Event : Any>(
     private fun launchInMachine(block: LaunchBlockReceiver<State, SubState>) =
         machineScope.launch { block(launchBlock) }
 
-    private suspend fun updateState(block: (SubState) -> SubState) {
-        val called = CompletableDeferred<Unit>()
+    private suspend fun updateState(block: (SubState) -> SubState) = suspendCoroutine { continuation ->
         stateScope.launch {
             emitMessage(
                 Message.OnCallback(
@@ -82,16 +92,15 @@ internal class WhenInRuntime<State : Any, SubState : State, Event : Any>(
                         if (stateScope.isActive) {
                             stateHolder.set(block(stateHolder.get()))
                         }
-                        called.complete(Unit)
+
+                        continuation.resume(Unit)
                     }
                 )
             )
         }
-        called.await()
     }
 
-    private suspend fun transitionTo(block: (SubState) -> State) {
-        val called = CompletableDeferred<Unit>()
+    private suspend fun transitionTo(block: (SubState) -> State) = suspendCoroutine { continuation ->
         stateScope.launch {
             emitMessage(
                 Message.OnCallback(
@@ -99,12 +108,12 @@ internal class WhenInRuntime<State : Any, SubState : State, Event : Any>(
                         if (stateScope.isActive) {
                             transitionToFct(block(stateHolder.get()))
                         }
-                        called.complete(Unit)
+
+                        continuation.resume(Unit)
                     }
                 )
             )
         }
-        called.await()
     }
 
     fun onEnter() {
@@ -120,6 +129,36 @@ internal class WhenInRuntime<State : Any, SubState : State, Event : Any>(
             }
         }
     }
+
+    private fun createEventDispatcher(onEvent: OnEvent.Suspendable<State, SubState, *>) = when (onEvent.launchMode) {
+        LaunchMode.Sequential -> SequentialEventDispatcher(
+            block = onEvent.block,
+            launchBlock = launchBlock,
+            launchInStateFct = ::launchInState,
+            emitMessage = emitMessage,
+        )
+
+        LaunchMode.Concurrent -> ConcurrentEventDispatcher(
+            block = onEvent.block,
+            launchBlock = launchBlock,
+            launchInStateFct = ::launchInState,
+            emitMessage = emitMessage,
+        )
+
+        LaunchMode.Single -> SingleEventDispatcher(
+            block = onEvent.block,
+            launchBlock = launchBlock,
+            launchInStateFct = ::launchInState,
+            emitMessage = emitMessage,
+        )
+
+        LaunchMode.Latest -> LatestEventDispatcher(
+            block = onEvent.block,
+            launchBlock = launchBlock,
+            launchInStateFct = ::launchInState,
+            emitMessage = emitMessage,
+        )
+    } as EventDispatcher<Event>
 
     fun onEventReceived(event: Event) {
         val eventType = event::class
@@ -148,38 +187,6 @@ internal class WhenInRuntime<State : Any, SubState : State, Event : Any>(
             }
         }
     }
-
-    private fun createEventDispatcher(onEvent: OnEvent.Suspendable<State, SubState, *>) =
-        when (onEvent.launchMode) {
-            LaunchMode.Sequential ->
-                SequentialEventDispatcher(
-                    block = onEvent.block,
-                    launchBlock = launchBlock,
-                    launchInStateFct = ::launchInState,
-                    emitMessage = emitMessage,
-                )
-            LaunchMode.Concurrent ->
-                ConcurrentEventDispatcher(
-                    block = onEvent.block,
-                    launchBlock = launchBlock,
-                    launchInStateFct = ::launchInState,
-                    emitMessage = emitMessage,
-                )
-            LaunchMode.Single ->
-                SingleEventDispatcher(
-                    block = onEvent.block,
-                    launchBlock = launchBlock,
-                    launchInStateFct = ::launchInState,
-                    emitMessage = emitMessage,
-                )
-            LaunchMode.Latest ->
-                LatestEventDispatcher(
-                    block = onEvent.block,
-                    launchBlock = launchBlock,
-                    launchInStateFct = ::launchInState,
-                    emitMessage = emitMessage,
-                )
-        } as EventDispatcher<Event>
 
     fun onEventCompleted(event: Event) {
         eventDispatchers[event::class]?.let { eventDispatcher ->
@@ -213,13 +220,3 @@ internal class WhenInRuntime<State : Any, SubState : State, Event : Any>(
         }
     }
 }
-
-internal typealias LaunchInState = (suspend () -> Unit) -> Job
-
-internal interface EventDispatcher<SubEvent : Any> {
-    fun onEventReceived(event: SubEvent)
-    fun onEventCompleted(event: SubEvent) {}
-}
-
-@PublishedApi
-internal class TransitionPerformedException : CancellationException("cancelled on transition")

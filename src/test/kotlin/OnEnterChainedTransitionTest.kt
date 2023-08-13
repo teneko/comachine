@@ -29,7 +29,7 @@ class OnEnterChainedTransitionTest {
     fun test() {
 
         val machine = Comachine<State, Unit>(
-            startWith = State.Zero
+            initialState = State.Zero
         ) {
             whenIn<State.Zero> { onEnter { transitionTo { State.One } } }
             whenIn<State.One> { onEnter { transitionTo { State.Two } } }

@@ -3,6 +3,11 @@ package de.halfbit.comachine.dsl
 import kotlin.reflect.KClass
 
 @PublishedApi
+internal enum class LaunchMode {
+    Sequential, Concurrent, Latest, Single
+}
+
+@PublishedApi
 internal sealed interface OnEvent<State : Any, SubState : State, SubEvent : Any> {
     val eventType: KClass<SubEvent>
 
@@ -19,9 +24,4 @@ internal sealed interface OnEvent<State : Any, SubState : State, SubEvent : Any>
         val launchMode: LaunchMode,
         val block: suspend LaunchBlock<State, SubState>.(SubEvent) -> Unit,
     ) : OnEvent<State, SubState, SubEvent>
-}
-
-@PublishedApi
-internal enum class LaunchMode {
-    Sequential, Concurrent, Latest, Single
 }

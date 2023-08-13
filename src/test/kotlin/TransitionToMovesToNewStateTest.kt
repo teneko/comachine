@@ -60,7 +60,7 @@ class TransitionToMovesToNewStateTest {
     fun test() {
 
         val machine = Comachine<State, Event>(
-            startWith = State.Loading()
+            initialState = State.Loading()
         ) {
             whenIn<State.Loading> {
                 val loadingCompleted = CompletableDeferred<Unit>()

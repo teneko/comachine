@@ -22,7 +22,7 @@ class OnSuspendableConcurrentTest {
         val events = mutableListOf<Event>()
         val secondBucketSent = CompletableDeferred<Unit>()
 
-        val machine = Comachine<State, Event>(startWith = State()) {
+        val machine = Comachine<State, Event>(initialState = State()) {
             whenIn<State> {
                 onConcurrent<Event> { event ->
                     if (event.index < 5) {

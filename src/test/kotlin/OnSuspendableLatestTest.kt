@@ -27,7 +27,7 @@ class OnSuspendableLatestTest {
         var firstEventJob: Job? = null
         val allEventsSent = CompletableDeferred<Unit>()
 
-        val machine = Comachine<State, Event>(startWith = State()) {
+        val machine = Comachine<State, Event>(initialState = State()) {
             whenIn<State> {
                 onLatest<Event> { event ->
                     events.add(event)

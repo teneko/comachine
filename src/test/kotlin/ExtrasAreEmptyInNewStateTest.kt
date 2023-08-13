@@ -22,7 +22,7 @@ class ExtrasAreEmptyInNewStateTest {
     fun test() {
 
         val machine = Comachine<State, Unit>(
-            startWith = State.One
+            initialState = State.One
         ) {
             whenIn<State.One> {
                 onEnter {

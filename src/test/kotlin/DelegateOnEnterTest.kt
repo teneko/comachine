@@ -22,7 +22,7 @@ class DelegateOnEnterTest {
     @Test
     fun multipleSecondaryHandlersCanBeRegistered() {
 
-        val machine = MutableComachine<State, Unit>(startWith = State())
+        val machine = MutableComachine<State, Unit>(initialState = State())
 
         machine.registerDelegate {
             whenIn<State> {
@@ -77,7 +77,7 @@ class DelegateOnEnterTest {
     @Test
     fun singleMainHandlerCanBeRegistered() {
 
-        val machine = MutableComachine<State, Unit>(startWith = State())
+        val machine = MutableComachine<State, Unit>(initialState = State())
 
         machine.registerDelegate {
             whenIn<State> {
@@ -132,7 +132,7 @@ class DelegateOnEnterTest {
     @Test
     fun multipleMainHandlersCannotBeRegistered() {
 
-        val machine = MutableComachine<State, Unit>(startWith = State())
+        val machine = MutableComachine<State, Unit>(initialState = State())
 
         machine.registerDelegate {
             whenIn<State> {

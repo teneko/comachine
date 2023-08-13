@@ -23,7 +23,7 @@ class UpdateStateMultipleEventsTest {
     fun test() {
 
         val machine = Comachine<State, Event>(
-            startWith = State()
+            initialState = State()
         ) {
             whenIn<State> {
                 onEnter {

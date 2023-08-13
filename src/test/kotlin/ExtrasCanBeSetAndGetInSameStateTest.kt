@@ -16,7 +16,7 @@ class ExtrasCanBeSetAndGetInSameStateTest {
     fun test() {
 
         val machine = Comachine<State, Unit>(
-            startWith = State()
+            initialState = State()
         ) {
             whenIn<State> {
                 onEnter {

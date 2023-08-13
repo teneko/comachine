@@ -2,7 +2,6 @@ package de.halfbit.comachine.dsl
 
 import de.halfbit.comachine.MutableComachine
 import de.halfbit.comachine.runtime.ComachineRuntime
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -20,31 +19,30 @@ internal typealias WhenInsMap<SuperState, State> =
 @ComachineDsl
 class ComachineBlock<State : Any, Event : Any>
 internal constructor(
-    @PublishedApi internal val startWith: State,
-    @PublishedApi internal val whenIns: WhenInsMap<State, out State> = mutableMapOf(),
+    @PublishedApi internal val initialState: State,
+    @PublishedApi internal val whenInMap: WhenInsMap<State, out State> = mutableMapOf(),
 ) {
-
     inline fun <reified SubState : State> whenIn(
         block: WhenInBlock<State, SubState, Event>.() -> Unit
     ) {
-        whenIns[SubState::class] =
+        whenInMap[SubState::class] =
             WhenIn<State, SubState>(SubState::class)
                 .also { block(WhenInBlock(it)) }
     }
 
     fun build(): MutableComachine<State, Event> =
         MutableComachineImpl(
-            startWith = startWith,
-            whenIns = whenIns,
+            initialState = initialState,
+            whenInMap = whenInMap,
         )
 
     private class MutableComachineImpl<State : Any, Event : Any>(
-        private val startWith: State,
-        private val whenIns: WhenInsMap<State, out State>,
+        private val initialState: State,
+        private val whenInMap: WhenInsMap<State, out State>,
         stateExtraBufferCapacity: Int = 16,
     ) : MutableComachine<State, Event> {
-
         private var comachineRuntime: ComachineRuntime<State, Event>? = null
+
         private val stateFlow = MutableSharedFlow<State>(
             replay = 1,
             extraBufferCapacity = stateExtraBufferCapacity,
@@ -57,7 +55,7 @@ internal constructor(
             check(comachineRuntime == null) {
                 "Register can only be called when event loop() is not stated"
             }
-            ComachineDelegateBlock<State, Event>(whenIns).also(block)
+            ComachineDelegateBlock<State, Event>(whenInMap).also(block)
         }
 
         override suspend fun send(event: Event) {
@@ -71,10 +69,10 @@ internal constructor(
             coroutineScope {
                 val machineScope = CoroutineScope(Job(coroutineContext[Job]))
                 val machineRuntime = ComachineRuntime<State, Event>(
-                    initialState = startWith,
+                    initialState = initialState,
                     machineScope = machineScope,
                     stateFlow = stateFlow,
-                    whenIns = whenIns,
+                    whenInMap = whenInMap,
                 )
                 comachineRuntime = machineRuntime
                 try {

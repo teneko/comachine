@@ -12,7 +12,7 @@ class WhenInChecksForDuplicateEventDeclarationsTest {
     @Test()
     fun test() {
         try {
-            Comachine<State, Event>(startWith = State) {
+            Comachine<State, Event>(initialState = State) {
                 whenIn<State> {
                     onSequential<Event> {}
                     onLatest<Event> {}

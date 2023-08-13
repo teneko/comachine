@@ -25,7 +25,7 @@ class AggregateStatesTest {
     @Test
     fun test() {
         val comachine = Comachine<State, Event>(
-            startWith = State.Solid()
+            initialState = State.Solid()
         ) {
             whenIn<State.Solid> {
                 on<Event.OnHeat> {

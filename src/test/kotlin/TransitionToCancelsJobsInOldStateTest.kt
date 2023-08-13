@@ -27,7 +27,7 @@ class TransitionToCancelsJobsInOldStateTest {
         val loadingStarted = CompletableDeferred<Unit>()
 
         val machine = Comachine<State, Event>(
-            startWith = State.Loading
+            initialState = State.Loading
         ) {
             whenIn<State.Loading> {
                 onEnter {

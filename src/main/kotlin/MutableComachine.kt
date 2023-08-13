@@ -4,10 +4,10 @@ import de.halfbit.comachine.dsl.ComachineBlock
 import de.halfbit.comachine.dsl.ComachineDelegateBlock
 
 fun <State : Any, Event : Any> MutableComachine(
-    startWith: State,
+    initialState: State,
     block: ComachineBlock<State, Event>.() -> Unit = {}
 ): MutableComachine<State, Event> =
-    ComachineBlock<State, Event>(startWith).also(block).build()
+    ComachineBlock<State, Event>(initialState).also(block).build()
 
 /**
  * Mutable comachine can be extended by feature specific logic encapsulated

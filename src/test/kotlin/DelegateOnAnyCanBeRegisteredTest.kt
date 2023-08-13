@@ -27,7 +27,7 @@ class DelegateOnAnyCanBeRegisteredTest {
     @Test
     fun test() {
 
-        val machine = MutableComachine<State, Event>(startWith = State())
+        val machine = MutableComachine<State, Event>(initialState = State())
 
         machine.registerDelegate {
             whenIn<State> {

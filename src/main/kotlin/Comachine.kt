@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 fun <State : Any, Event : Any> Comachine(
-    startWith: State,
+    initialState: State,
     block: ComachineBlock<State, Event>.() -> Unit
 ): Comachine<State, Event> =
-    ComachineBlock<State, Event>(startWith).also(block).build()
+    ComachineBlock<State, Event>(initialState).also(block).build()
 
 /**
  * Launches the machine in the given scope and suspends until the initial state is

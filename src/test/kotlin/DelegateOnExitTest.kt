@@ -21,7 +21,7 @@ class DelegateOnExitTest {
     @Test
     fun multipleSecondaryHandlersCanBeRegistered() {
 
-        val machine = MutableComachine<State, Unit>(startWith = State.One)
+        val machine = MutableComachine<State, Unit>(initialState = State.One)
         var result = ""
 
         machine.registerDelegate {
@@ -73,7 +73,7 @@ class DelegateOnExitTest {
     @Test
     fun singleMainHandlerCanBeRegistered() {
 
-        val machine = MutableComachine<State, Unit>(startWith = State.One)
+        val machine = MutableComachine<State, Unit>(initialState = State.One)
         var result = ""
 
         machine.registerDelegate {
@@ -125,7 +125,7 @@ class DelegateOnExitTest {
     @Test
     fun multipleMainHandlersCannotBeRegistered() {
 
-        val machine = MutableComachine<State, Unit>(startWith = State.One)
+        val machine = MutableComachine<State, Unit>(initialState = State.One)
         var result = ""
 
         machine.registerDelegate {

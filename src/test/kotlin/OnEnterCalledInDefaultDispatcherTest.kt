@@ -26,7 +26,7 @@ class OnEnterCalledInDefaultDispatcherTest {
     fun test() {
 
         val machine = Comachine<State, Event>(
-            startWith = State.Zero(count = 0)
+            initialState = State.Zero(count = 0)
         ) {
             whenIn<State.Zero> {
                 onEnter { state.update { copy(count = count + 1) } }

@@ -19,6 +19,13 @@ internal class SequentialEventDispatcher<State : Any, SubState : State, SubEvent
     private val queuedEvents: MutableList<SubEvent> = mutableListOf()
     private var currentEventJob: Job? = null
 
+    private fun launchNextEventJob(event: SubEvent): Job = launchInStateFct {
+        block(launchBlock, event)
+        if (coroutineContext.isActive) {
+            emitMessage(Message.OnEventCompleted(event))
+        }
+    }
+
     override fun onEventReceived(event: SubEvent) {
         if (currentEventJob != null) queuedEvents += event
         else currentEventJob = launchNextEventJob(event)
@@ -29,12 +36,4 @@ internal class SequentialEventDispatcher<State : Any, SubState : State, SubEvent
             if (queuedEvents.isEmpty()) null
             else launchNextEventJob(queuedEvents.removeFirst())
     }
-
-    private fun launchNextEventJob(event: SubEvent): Job =
-        launchInStateFct {
-            block(launchBlock, event)
-            if (coroutineContext.isActive) {
-                emitMessage(Message.OnEventCompleted(event))
-            }
-        }
 }
