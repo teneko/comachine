@@ -50,9 +50,10 @@ class TransitionToCancelsJobsInOldStateTest {
             machine.send(Event)
             machine.await<State.Ready>()
 
+            val isJobInactive =job?.isActive == false
             coroutineContext.cancelChildren()
 
-            assertTrue(job?.isActive == false)
+            assertTrue(isJobInactive)
         }
     }
 }
