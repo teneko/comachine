@@ -1,7 +1,7 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.comachine
-import de.halfbit.comachine.startInScope
+import de.halfbit.comachine.Comachine
+import de.halfbit.comachine.launchIn
 import de.halfbit.comachine.tests.utils.await
 import de.halfbit.comachine.tests.utils.runBlockingTest
 import kotlinx.coroutines.cancelChildren
@@ -15,7 +15,7 @@ class ExtrasCanBeSetAndGetInSameStateTest {
     @Test
     fun test() {
 
-        val machine = comachine<State, Unit>(
+        val machine = Comachine<State, Unit>(
             startWith = State()
         ) {
             whenIn<State> {
@@ -36,7 +36,7 @@ class ExtrasCanBeSetAndGetInSameStateTest {
                 }
             }
 
-            machine.startInScope(this)
+            machine.launchIn(this)
             machine.send(Unit)
             machine.await<State> { value == "custom value" }
 

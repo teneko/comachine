@@ -1,11 +1,10 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.mutableComachine
-import de.halfbit.comachine.startInScope
+import de.halfbit.comachine.MutableComachine
+import de.halfbit.comachine.launchIn
 import de.halfbit.comachine.tests.utils.await
 import de.halfbit.comachine.tests.utils.runBlockingTest
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.test.Test
@@ -28,7 +27,7 @@ class DelegateOnAnyCanBeRegisteredTest {
     @Test
     fun test() {
 
-        val machine = mutableComachine<State, Event>(startWith = State())
+        val machine = MutableComachine<State, Event>(startWith = State())
 
         machine.registerDelegate {
             whenIn<State> {
@@ -67,7 +66,7 @@ class DelegateOnAnyCanBeRegisteredTest {
                 }
             }
 
-            machine.startInScope(this)
+            machine.launchIn(this)
             machine.await<State> { saved }
 
             machine.send(Event.Seek)

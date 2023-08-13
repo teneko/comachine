@@ -1,7 +1,7 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.comachine
-import de.halfbit.comachine.startInScope
+import de.halfbit.comachine.Comachine
+import de.halfbit.comachine.launchIn
 import de.halfbit.comachine.tests.utils.await
 import de.halfbit.comachine.tests.utils.runBlockingTest
 import kotlinx.coroutines.cancelChildren
@@ -28,7 +28,7 @@ class OnEnterChainedTransitionTest {
     @Test
     fun test() {
 
-        val machine = comachine<State, Unit>(
+        val machine = Comachine<State, Unit>(
             startWith = State.Zero
         ) {
             whenIn<State.Zero> { onEnter { transitionTo { State.One } } }
@@ -52,7 +52,7 @@ class OnEnterChainedTransitionTest {
                 }
             }
 
-            machine.startInScope(this)
+            machine.launchIn(this)
             machine.await<State.Ten>()
 
             coroutineContext.cancelChildren()

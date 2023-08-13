@@ -37,51 +37,51 @@ internal constructor(
             startWith = startWith,
             whenIns = whenIns,
         )
-}
 
-private class MutableComachineImpl<State : Any, Event : Any>(
-    private val startWith: State,
-    private val whenIns: WhenInsMap<State, out State>,
-    stateExtraBufferCapacity: Int = 16,
-) : MutableComachine<State, Event> {
+    private class MutableComachineImpl<State : Any, Event : Any>(
+        private val startWith: State,
+        private val whenIns: WhenInsMap<State, out State>,
+        stateExtraBufferCapacity: Int = 16,
+    ) : MutableComachine<State, Event> {
 
-    private var comachineRuntime: ComachineRuntime<State, Event>? = null
-    private val stateFlow = MutableSharedFlow<State>(
-        replay = 1,
-        extraBufferCapacity = stateExtraBufferCapacity,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
+        private var comachineRuntime: ComachineRuntime<State, Event>? = null
+        private val stateFlow = MutableSharedFlow<State>(
+            replay = 1,
+            extraBufferCapacity = stateExtraBufferCapacity,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
 
-    override val state: Flow<State> get() = stateFlow
+        override val state: Flow<State> get() = stateFlow
 
-    override fun registerDelegate(block: ComachineDelegateBlock<State, Event>.() -> Unit) {
-        check(comachineRuntime == null) {
-            "Register can only be called when event loop() is not stated"
+        override fun registerDelegate(block: ComachineDelegateBlock<State, Event>.() -> Unit) {
+            check(comachineRuntime == null) {
+                "Register can only be called when event loop() is not stated"
+            }
+            ComachineDelegateBlock<State, Event>(whenIns).also(block)
         }
-        ComachineDelegateBlock<State, Event>(whenIns).also(block)
-    }
 
-    override suspend fun send(event: Event) {
-        checkNotNull(comachineRuntime) {
-            "Start event loop by called `launch { store.loop() }` first"
-        }.send(event)
-    }
+        override suspend fun send(event: Event) {
+            checkNotNull(comachineRuntime) {
+                "Start event loop by called `launch { store.loop() }` first"
+            }.send(event)
+        }
 
-    override suspend fun loop(onStarted: CompletableDeferred<Unit>?) {
-        check(comachineRuntime == null) { "Event loop is already started" }
-        coroutineScope {
-            val machineScope = CoroutineScope(Job(coroutineContext[Job]))
-            val machineRuntime = ComachineRuntime<State, Event>(
-                initialState = startWith,
-                machineScope = machineScope,
-                stateFlow = stateFlow,
-                whenIns = whenIns,
-            )
-            comachineRuntime = machineRuntime
-            try {
-                machineRuntime.loop(onStarted)
-            } finally {
-                comachineRuntime = null
+        override suspend fun loop(whenStarted: (() -> Unit)?) {
+            check(comachineRuntime == null) { "Event loop is already started" }
+            coroutineScope {
+                val machineScope = CoroutineScope(Job(coroutineContext[Job]))
+                val machineRuntime = ComachineRuntime<State, Event>(
+                    initialState = startWith,
+                    machineScope = machineScope,
+                    stateFlow = stateFlow,
+                    whenIns = whenIns,
+                )
+                comachineRuntime = machineRuntime
+                try {
+                    machineRuntime.loop(whenStarted)
+                } finally {
+                    comachineRuntime = null
+                }
             }
         }
     }

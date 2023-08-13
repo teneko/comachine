@@ -1,7 +1,7 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.comachine
-import de.halfbit.comachine.startInScope
+import de.halfbit.comachine.Comachine
+import de.halfbit.comachine.launchIn
 import de.halfbit.comachine.tests.utils.await
 import de.halfbit.comachine.tests.utils.runBlockingTest
 import kotlinx.coroutines.cancelChildren
@@ -25,7 +25,7 @@ class OnEnterCalledInDefaultDispatcherTest {
     @Test
     fun test() {
 
-        val machine = comachine<State, Event>(
+        val machine = Comachine<State, Event>(
             startWith = State.Zero(count = 0)
         ) {
             whenIn<State.Zero> {
@@ -55,7 +55,7 @@ class OnEnterCalledInDefaultDispatcherTest {
                 }
             }
 
-            machine.startInScope(this)
+            machine.launchIn(this)
 
             machine.send(Event.One)
             machine.send(Event.Two)

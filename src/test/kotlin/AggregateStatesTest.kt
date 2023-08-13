@@ -1,7 +1,7 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.comachine
-import de.halfbit.comachine.startInScope
+import de.halfbit.comachine.Comachine
+import de.halfbit.comachine.launchIn
 import de.halfbit.comachine.tests.utils.await
 import de.halfbit.comachine.tests.utils.runBlockingTest
 import kotlinx.coroutines.cancelChildren
@@ -24,7 +24,7 @@ class AggregateStatesTest {
 
     @Test
     fun test() {
-        val comachine = comachine<State, Event>(
+        val comachine = Comachine<State, Event>(
             startWith = State.Solid()
         ) {
             whenIn<State.Solid> {
@@ -53,7 +53,7 @@ class AggregateStatesTest {
                     println("------ $it")
                 }
             }
-            comachine.startInScope(this)
+            comachine.launchIn(this)
 
             println("OnHeat")
             comachine.send(Event.OnHeat)

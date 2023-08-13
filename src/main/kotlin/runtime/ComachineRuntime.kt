@@ -30,14 +30,14 @@ internal class ComachineRuntime<State : Any, Event : Any>(
         messageFlow.emit(Message.OnEventReceived(event))
     }
 
-    suspend fun loop(onStarted: CompletableDeferred<Unit>?) {
+    suspend fun loop(whenStarted: (() -> Unit)?) {
         messageFlow
             .onSubscription { emit(Message.OnStateInitialized(initialState)) }
             .collect {
                 when (it) {
                     is Message.OnStateInitialized -> {
                         onEnterState(it.state as State)
-                        onStarted?.complete(Unit)
+                        whenStarted?.invoke()
                     }
                     is Message.OnEventReceived -> onEventReceived(it.event as Event)
                     is Message.OnEventCompleted -> onEventCompleted(it.event as Event)

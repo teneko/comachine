@@ -1,7 +1,7 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.comachine
-import de.halfbit.comachine.startInScope
+import de.halfbit.comachine.Comachine
+import de.halfbit.comachine.launchIn
 import de.halfbit.comachine.tests.utils.await
 import de.halfbit.comachine.tests.utils.runBlockingTest
 import kotlinx.coroutines.CompletableDeferred
@@ -27,7 +27,7 @@ class OnSuspendableLatestTest {
         var firstEventJob: Job? = null
         val allEventsSent = CompletableDeferred<Unit>()
 
-        val machine = comachine<State, Event>(startWith = State()) {
+        val machine = Comachine<State, Event>(startWith = State()) {
             whenIn<State> {
                 onLatest<Event> { event ->
                     events.add(event)
@@ -54,7 +54,7 @@ class OnSuspendableLatestTest {
                 }
             }
 
-            machine.startInScope(this)
+            machine.launchIn(this)
             repeat(10) {
                 machine.send(Event(index = it))
             }

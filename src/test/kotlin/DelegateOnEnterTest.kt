@@ -1,7 +1,7 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.mutableComachine
-import de.halfbit.comachine.startInScope
+import de.halfbit.comachine.MutableComachine
+import de.halfbit.comachine.launchIn
 import de.halfbit.comachine.tests.utils.await
 import de.halfbit.comachine.tests.utils.runBlockingTest
 import kotlinx.coroutines.cancelChildren
@@ -22,7 +22,7 @@ class DelegateOnEnterTest {
     @Test
     fun multipleSecondaryHandlersCanBeRegistered() {
 
-        val machine = mutableComachine<State, Unit>(startWith = State())
+        val machine = MutableComachine<State, Unit>(startWith = State())
 
         machine.registerDelegate {
             whenIn<State> {
@@ -57,7 +57,7 @@ class DelegateOnEnterTest {
                 }
             }
 
-            machine.startInScope(this)
+            machine.launchIn(this)
             machine.await<State> { position == 1 && saved && playing }
 
             coroutineContext.cancelChildren()
@@ -77,7 +77,7 @@ class DelegateOnEnterTest {
     @Test
     fun singleMainHandlerCanBeRegistered() {
 
-        val machine = mutableComachine<State, Unit>(startWith = State())
+        val machine = MutableComachine<State, Unit>(startWith = State())
 
         machine.registerDelegate {
             whenIn<State> {
@@ -112,7 +112,7 @@ class DelegateOnEnterTest {
                 }
             }
 
-            machine.startInScope(this)
+            machine.launchIn(this)
             machine.await<State> { position == 1 && saved && playing }
 
             coroutineContext.cancelChildren()
@@ -132,7 +132,7 @@ class DelegateOnEnterTest {
     @Test
     fun multipleMainHandlersCannotBeRegistered() {
 
-        val machine = mutableComachine<State, Unit>(startWith = State())
+        val machine = MutableComachine<State, Unit>(startWith = State())
 
         machine.registerDelegate {
             whenIn<State> {

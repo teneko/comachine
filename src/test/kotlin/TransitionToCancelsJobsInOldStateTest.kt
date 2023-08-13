@@ -1,7 +1,7 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.comachine
-import de.halfbit.comachine.startInScope
+import de.halfbit.comachine.Comachine
+import de.halfbit.comachine.launchIn
 import de.halfbit.comachine.tests.utils.await
 import de.halfbit.comachine.tests.utils.runBlockingTest
 import kotlinx.coroutines.CompletableDeferred
@@ -26,7 +26,7 @@ class TransitionToCancelsJobsInOldStateTest {
         var job: Job? = null
         val loadingStarted = CompletableDeferred<Unit>()
 
-        val machine = comachine<State, Event>(
+        val machine = Comachine<State, Event>(
             startWith = State.Loading
         ) {
             whenIn<State.Loading> {
@@ -44,7 +44,7 @@ class TransitionToCancelsJobsInOldStateTest {
 
         runBlockingTest {
 
-            machine.startInScope(this)
+            machine.launchIn(this)
             loadingStarted.await()
 
             machine.send(Event)

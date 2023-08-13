@@ -3,6 +3,12 @@ package de.halfbit.comachine
 import de.halfbit.comachine.dsl.ComachineBlock
 import de.halfbit.comachine.dsl.ComachineDelegateBlock
 
+fun <State : Any, Event : Any> MutableComachine(
+    startWith: State,
+    block: ComachineBlock<State, Event>.() -> Unit = {}
+): MutableComachine<State, Event> =
+    ComachineBlock<State, Event>(startWith).also(block).build()
+
 /**
  * Mutable comachine can be extended by feature specific logic encapsulated
  * in a delegate. This can be used to decompose complex state machine into
@@ -16,9 +22,3 @@ import de.halfbit.comachine.dsl.ComachineDelegateBlock
 interface MutableComachine<State : Any, Event : Any> : Comachine<State, Event> {
     fun registerDelegate(block: ComachineDelegateBlock<State, Event>.() -> Unit)
 }
-
-fun <State : Any, Event : Any> mutableComachine(
-    startWith: State,
-    block: ComachineBlock<State, Event>.() -> Unit = {}
-): MutableComachine<State, Event> =
-    ComachineBlock<State, Event>(startWith).also(block).build()

@@ -1,6 +1,6 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.comachine
+import de.halfbit.comachine.Comachine
 import kotlin.test.Test
 import kotlin.test.fail
 
@@ -12,7 +12,7 @@ class WhenInChecksForDuplicateEventDeclarationsTest {
     @Test()
     fun test() {
         try {
-            comachine<State, Event>(startWith = State) {
+            Comachine<State, Event>(startWith = State) {
                 whenIn<State> {
                     onSequential<Event> {}
                     onLatest<Event> {}

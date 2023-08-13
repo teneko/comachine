@@ -1,7 +1,7 @@
 package de.halfbit.comachine.tests
 
-import de.halfbit.comachine.comachine
-import de.halfbit.comachine.startInScope
+import de.halfbit.comachine.Comachine
+import de.halfbit.comachine.launchIn
 import de.halfbit.comachine.tests.utils.await
 import de.halfbit.comachine.tests.utils.runBlockingTest
 import kotlinx.coroutines.cancelChildren
@@ -22,7 +22,7 @@ class UpdateStateMultipleEventsTest {
     @Test
     fun test() {
 
-        val machine = comachine<State, Event>(
+        val machine = Comachine<State, Event>(
             startWith = State()
         ) {
             whenIn<State> {
@@ -50,7 +50,7 @@ class UpdateStateMultipleEventsTest {
         }
 
         runBlockingTest {
-            machine.startInScope(this)
+            machine.launchIn(this)
 
             for (i in 0..9) {
                 machine.send(Event)
