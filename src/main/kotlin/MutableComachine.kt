@@ -2,12 +2,15 @@ package de.halfbit.comachine
 
 import de.halfbit.comachine.dsl.ComachineBlock
 import de.halfbit.comachine.dsl.ComachineDelegateBlock
+import de.halfbit.comachine.dsl.StateTransitionAllowlist
+import kotlin.reflect.KClass
 
 fun <State : Any, Event : Any> MutableComachine(
     initialState: State,
-    block: ComachineBlock<State, Event>.() -> Unit = {}
+    stateTransitionAllowlist:  StateTransitionAllowlist<State>? = null,
+    block: ComachineBlock<State, Event>.() -> Unit = {},
 ): MutableComachine<State, Event> =
-    ComachineBlock<State, Event>(initialState).also(block).build()
+    ComachineBlock<State, Event>(initialState).also(block).buildComachine(stateTransitionAllowlist)
 
 /**
  * Mutable comachine can be extended by feature specific logic encapsulated

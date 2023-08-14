@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "1.8.21"
     `maven-publish`
 }
 
@@ -13,18 +13,23 @@ repositories {
 }
 
 dependencies {
+    testImplementation("org.assertj:assertj-core:3.24.2")
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        val freeCompilerArgsArray = mutableListOf<String>()
+        val freeCompilerArgsArray = mutableListOf("-Xcontext-receivers")
 
         if (name.endsWith("Test")) {
-            freeCompilerArgsArray.add("-opt-in=kotlin.time.ExperimentalTime")
-            freeCompilerArgsArray.add("-opt-in=kotlinx.coroutines.DelicateCoroutinesApi")
-            freeCompilerArgsArray.add("-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi")
+            freeCompilerArgsArray.addAll(
+                arrayOf(
+                    "-opt-in=kotlin.time.ExperimentalTime",
+                    "-opt-in=kotlinx.coroutines.DelicateCoroutinesApi",
+                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
+                )
+            )
         }
 
         freeCompilerArgs = freeCompilerArgsArray

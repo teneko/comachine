@@ -1,6 +1,7 @@
 package de.halfbit.comachine.runtime
 
 import de.halfbit.comachine.dsl.ComachineBlock
+import de.halfbit.comachine.dsl.StateTransitionAllowlist
 import de.halfbit.comachine.dsl.WhenIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,18 +22,20 @@ internal sealed interface Message {
 }
 
 /**
- * The comachine used by [ComachineBlock] represents a finite state machine.
- * The state machine reacts on [Event] to mutate [State].
+ * The comachine instantiated by [ComachineBlock.MutableComachineImpl] represents the finite state machine.
+ * The state machine reacts on every [Event] to mutate [State].
  */
 internal class ComachineRuntime<State : Any, Event : Any>(
     private val initialState: State,
     private val machineScope: CoroutineScope,
     private val stateFlow: MutableSharedFlow<State>,
     private val whenInMap: MutableMap<KClass<out State>, WhenIn<State, out State>>,
+    private val stateTransitionAllowlist: StateTransitionAllowlist<State>?
 ) {
     private val messageFlow = MutableSharedFlow<Message>()
     private var whenInRuntime: WhenInRuntime<State, out State, Event>? = null
     private var unprocessedTransitionToState: State? = null
+    private var previousPermittedStateType: KClass<out State>? = null
 
     suspend fun send(event: Event) {
         messageFlow.emit(Message.OnEventReceived(event))
@@ -89,21 +92,53 @@ internal class ComachineRuntime<State : Any, Event : Any>(
     private fun transitionTo(state: State) {
         whenInRuntime?.onExit()
         check(unprocessedTransitionToState == null) {
-            reportError("Pending entry state is already set.")
+            reportError("Transition to new state is not yet finished.")
         }
         unprocessedTransitionToState = state
     }
 
-    private fun onEnterState(state: State) {
-        emitState(state)
-        whenInRuntime = createWhereInOrNull(state)
-        whenInRuntime?.onEnter()
+    private fun ensureValidStateTransition(state: State) {
+        if (stateTransitionAllowlist == null) {
+            return
+        }
+
+        val previousStateType = previousPermittedStateType
+        val stateType = state::class
+
+        // Hot-path
+        if (previousStateType == stateType) {
+            return
+        }
+
+        // Transition guards
+        if (previousStateType == null) {
+            // Validate from-state
+            if (!stateTransitionAllowlist.contains(stateType)) {
+                throw StateTransitionException(stateType)
+            }
+        } else {
+            // Validate to-state
+            stateTransitionAllowlist[previousStateType]?.also { allowedNextStates ->
+                if (!allowedNextStates.contains(stateType)) {
+                    throw StateTransitionException(previousStateType, stateType)
+                }
+            }
+        }
+
+        previousPermittedStateType = stateType
     }
 
     private fun emitState(state: State) {
         check(stateFlow.tryEmit(state)) {
             reportError("StateFlow suspends although it never should.")
         }
+    }
+
+    private fun onEnterState(state: State) {
+        ensureValidStateTransition(state)
+        emitState(state)
+        whenInRuntime = createWhereInOrNull(state)
+        whenInRuntime?.onEnter()
     }
 }
 

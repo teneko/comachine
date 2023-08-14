@@ -6,12 +6,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
 
 fun <State : Any, Event : Any> Comachine(
     initialState: State,
+    stateTransitionAllowlist: Map<KClass<out State>, Set<KClass<out State>>>? = null,
     block: ComachineBlock<State, Event>.() -> Unit
 ): Comachine<State, Event> =
-    ComachineBlock<State, Event>(initialState).also(block).build()
+    ComachineBlock<State, Event>(initialState).also(block).buildComachine(stateTransitionAllowlist)
 
 /**
  * Launches the machine in the given scope and suspends until the initial state is
