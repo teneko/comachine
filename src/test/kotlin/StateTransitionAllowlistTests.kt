@@ -1,6 +1,7 @@
 package de.halfbit.comachine.tests
 
 import de.halfbit.comachine.MutableComachine
+import de.halfbit.comachine.dsl.addAll
 import de.halfbit.comachine.dsl.buildStateTransitionAllowlist
 import de.halfbit.comachine.dsl.put
 import de.halfbit.comachine.launchIn
@@ -17,6 +18,21 @@ class StateTransitionAllowlistTests {
 
         object One : State
         object Two : State
+    }
+
+    init {
+        buildStateTransitionAllowlist {
+            put(State.One::class) {
+                addAll(
+                    State.One::class,
+                    State.Two::class
+                )
+            }
+        }
+
+        buildStateTransitionAllowlist {
+            put(State.One::class)
+        }
     }
 
     @Test
@@ -52,7 +68,7 @@ class StateTransitionAllowlistTests {
     @Test
     fun `comachine should throw at runtime`() {
         val stateTransitionAllowlist = buildStateTransitionAllowlist<State> {
-            put(State.One::class, setOf())
+            put(State.One::class)
         }
 
         val comachine = MutableComachine<State, Unit>(State.One, stateTransitionAllowlist) {

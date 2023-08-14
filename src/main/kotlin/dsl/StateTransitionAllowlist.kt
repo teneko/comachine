@@ -6,20 +6,32 @@ import kotlin.contracts.contract
 import kotlin.experimental.ExperimentalTypeInference
 import kotlin.reflect.KClass
 
-typealias MutableStateTransitionToAllowlist<State> = MutableSet<KClass<out State>>
-typealias StateTransitionToAllowlist<State> = Set<KClass<out State>>
+typealias StateType<State> = KClass<out State>
 
-typealias MutableStateTransitionAllowlist<State> = MutableMap<KClass<out State>, StateTransitionToAllowlist<State>?>
-typealias StateTransitionAllowlist<State> = Map<KClass<out State>, StateTransitionToAllowlist<State>?>
+typealias MutableStateTransitionToAllowlist<State> = MutableSet<StateType<State>>
+typealias StateTransitionToAllowlist<State> = Set<StateType<State>>
+
+typealias MutableStateTransitionAllowlist<State> = MutableMap<StateType<State>, StateTransitionToAllowlist<State>?>
+typealias StateTransitionAllowlist<State> = Map<StateType<State>, StateTransitionToAllowlist<State>?>
+
+fun <State : Any> MutableStateTransitionToAllowlist<State>.addAll(vararg toStateAllowlist: StateType<State>) {
+    addAll(toStateAllowlist)
+}
 
 @OptIn(ExperimentalContracts::class, ExperimentalTypeInference::class)
 inline fun <State : Any> MutableStateTransitionAllowlist<State>.put(
-    fromState: KClass<State>,
+    fromState: StateType<State>,
     @BuilderInference toStateAllowlistBuilder: MutableStateTransitionToAllowlist<State>.() -> Unit
 ) {
     contract { callsInPlace(toStateAllowlistBuilder, InvocationKind.EXACTLY_ONCE) }
-    val transitionToStateAllowlist = buildSet(toStateAllowlistBuilder)
-    put(fromState, transitionToStateAllowlist)
+    val toStateAllowlist = buildSet(toStateAllowlistBuilder)
+    put(fromState, toStateAllowlist)
+}
+
+fun <State : Any> MutableStateTransitionAllowlist<State>.put(
+    fromState: StateType<State>
+) {
+    put(fromState, setOf())
 }
 
 @OptIn(ExperimentalContracts::class, ExperimentalTypeInference::class)
