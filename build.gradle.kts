@@ -33,7 +33,7 @@ tasks.withType<KotlinCompile> {
         }
 
         freeCompilerArgs = freeCompilerArgsArray
-        jvmTarget = "17"
+        jvmTarget = "1.8"
         allWarningsAsErrors = false // TODO
     }
 }
