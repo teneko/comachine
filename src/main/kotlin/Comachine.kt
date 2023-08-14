@@ -28,6 +28,10 @@ suspend fun Comachine<*, *>.launchIn(scope: CoroutineScope): Job {
     return job
 }
 
+context(CoroutineScope)
+suspend fun Comachine<*, *>.launch(): Job =
+    launchIn(this@CoroutineScope)
+
 interface Comachine<State : Any, Event : Any> {
     val state: Flow<State>
     suspend fun send(event: Event)
